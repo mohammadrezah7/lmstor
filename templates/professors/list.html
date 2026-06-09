@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}لیست اساتید{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h3><i class="fas fa-chalkboard-teacher ms-2"></i>لیست اساتید</h3>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+            <li class="breadcrumb-item active">اساتید</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>اساتید</span>
+        <span class="badge bg-primary">{{ professors.count }} نفر</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>نام</th>
+                        <th>نام خانوادگی</th>
+                        <th>رتبه علمی</th>
+                        <th>دپارتمان</th>
+                        <th>ایمیل</th>
+                        <th>تاریخ استخدام</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in professors %}
+                    <tr>
+                        <td>{{ p.professorid }}</td>
+                        <td>{{ p.firstname }}</td>
+                        <td>{{ p.lastname }}</td>
+                        <td><span class="badge bg-info">{{ p.academicrank }}</span></td>
+                        <td>{{ p.department|default:'-' }}</td>
+                        <td>{{ p.email|default:'-' }}</td>
+                        <td>{{ p.hiredate|default:'-' }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center py-4 text-muted">هیچ استادی یافت نشد</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

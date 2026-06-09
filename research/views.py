@@ -1,3 +1,6 @@
 from django.shortcuts import render
+from .models import Research
 
-# Create your views here.
+def research_list(request):
+    researches = Research.objects.all()
+    return render(request, 'research/list.html', {'researches': researches})

@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}داشبورد | سامانه مدیریت دانشگاه{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h3><i class="fas fa-th-large text-primary ms-2"></i>داشبورد</h3>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active">داشبورد</li>
+            </ol>
+        </nav>
+    </div>
+    <span class="text-muted">امروز: {{ current_year }}</span>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card blue">
+            <i class="fas fa-user-graduate stat-icon"></i>
+            <div class="stat-label">کل دانشجویان</div>
+            <div class="stat-value">{{ total_students }}</div>
+            <small>نفر</small>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card orange">
+            <i class="fas fa-chalkboard-teacher stat-icon"></i>
+            <div class="stat-label">کل اساتید</div>
+            <div class="stat-value">{{ total_professors }}</div>
+            <small>نفر</small>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card green">
+            <i class="fas fa-book-open stat-icon"></i>
+            <div class="stat-label">کتاب‌های کتابخانه</div>
+            <div class="stat-value">{{ total_books }}</div>
+            <small>عنوان</small>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card red">
+            <i class="fas fa-flask stat-icon"></i>
+            <div class="stat-label">پروژه‌های پژوهشی</div>
+            <div class="stat-value">{{ total_research }}</div>
+            <small>پروژه</small>
+        </div>
+    </div>
+</div>
+
+<!-- Second Row -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-4 col-md-6">
+        <div class="card h-100">
+            <div class="card-body text-center p-4">
+                <i class="fas fa-book fa-3x text-info mb-3"></i>
+                <h5 class="fw-bold">{{ total_courses }}</h5>
+                <p class="text-muted mb-0">کل دروس ارائه شده</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4 col-md-6">
+        <div class="card h-100">
+            <div class="card-body text-center p-4">
+                <i class="fas fa-clock fa-3x text-warning mb-3"></i>
+                <h5 class="fw-bold">{{ active_loans }}</h5>
+                <p class="text-muted mb-0">امانت‌های فعال کتاب</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4 col-md-6">
+        <div class="card h-100">
+            <div class="card-body text-center p-4">
+                <i class="fas fa-credit-card fa-3x text-success mb-3"></i>
+                <h5 class="fw-bold">{{ total_tuition_paid|floatformat:0 }} ریال</h5>
+                <p class="text-muted mb-0">شهریه پرداخت شده</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Students & Loans -->
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-user-plus ms-2"></i>دانشجویان جدید</span>
+                <a href="{% url 'students:list' %}" class="btn btn-sm btn-primary">مشاهده همه</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>نام و نام خانوادگی</th>
+                                <th>کد ملی</th>
+                                <th>سال ورود</th>
+                                <th>معدل</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in recent_students %}
+                            <tr>
+                                <td>{{ student.studentid }}</td>
+                                <td>{{ student.get_full_name }}</td>
+                                <td>{{ student.nationalid|default:'-' }}</td>
+                                <td>{{ student.enrollmentyear|default:'-' }}</td>
+                                <td>
+                                    {% if student.gpa %}
+                                        <span class="badge bg-success">{{ student.gpa }}</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">هیچ دانشجویی یافت نشد</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-exchange-alt ms-2"></i>آخرین امانت‌ها</span>
+                <a href="{% url 'library:list' %}" class="btn btn-sm btn-primary">مشاهده همه</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>کتاب</th>
+                                <th>نوع</th>
+                                <th>تاریخ امانت</th>
+                                <th>وضعیت</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in recent_loans %}
+                            <tr>
+                                <td>{{ loan.loanid }}</td>
+                                <td>{{ loan.bookid.title }}</td>
+                                <td>{{ loan.borrowertype }}</td>
+                                <td>{{ loan.loandate }}</td>
+                                <td>
+                                    {% if loan.returndate %}
+                                        <span class="badge bg-success">برگشت داده شده</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">در امانت</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">هیچ امانتی ثبت نشده</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

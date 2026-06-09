@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}انجمن‌ها{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h3><i class="fas fa-users ms-2"></i>انجمن‌ها</h3>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+            <li class="breadcrumb-item active">انجمن‌ها</li>
+        </ol>
+    </nav>
+</div>
+<div class="card">
+    <div class="card-header">لیست انجمن‌ها</div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>#</th><th>نام انجمن</th><th>نوع</th><th>سال تأسیس</th><th>استاد مشاور</th></tr></thead>
+            <tbody>
+                {% for s in societies %}
+                <tr><td>{{ s.societyid }}</td><td>{{ s.societyname }}</td><td>{{ s.type }}</td><td>{{ s.establishmentyear }}</td><td>{{ s.advisorprofessor }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

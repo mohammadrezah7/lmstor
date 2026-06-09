@@ -1,3 +1,7 @@
 from django.shortcuts import render
+from .models import Professor
 
-# Create your views here.
+
+def professor_list(request):
+    professors = Professor.objects.all()
+    return render(request, 'professors/list.html', {'professors': professors})

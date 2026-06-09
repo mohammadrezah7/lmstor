@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}دانشجویان | سامانه مدیریت دانشگاه{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap">
+    <div>
+        <h3><i class="fas fa-user-graduate ms-2"></i>لیست دانشجویان</h3>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+                <li class="breadcrumb-item active">دانشجویان</li>
+            </ol>
+        </nav>
+    </div>
+    <button class="btn btn-primary">
+        <i class="fas fa-plus"></i> افزودن دانشجو
+    </button>
+</div>
+
+<!-- Search & Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-2">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" name="search" class="form-control" placeholder="جستجو با نام، کد ملی یا ایمیل..." value="{{ search_query }}">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <select name="program" class="form-select">
+                    <option value="">همه رشته‌ها</option>
+                    {% for prog in programs %}
+                        <option value="{{ prog.programid }}" {% if program_filter == prog.programid|stringformat:"s" %}selected{% endif %}>
+                            {{ prog.programname }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="gender" class="form-select">
+                    <option value="">همه جنسیت‌ها</option>
+                    <option value="مرد" {% if gender_filter == 'مرد' %}selected{% endif %}>مرد</option>
+                    <option value="زن" {% if gender_filter == 'زن' %}selected{% endif %}>زن</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="year" class="form-select">
+                    <option value="">همه سال‌ها</option>
+                    {% for y in years %}
+                        <option value="{{ y }}" {% if year_filter == y %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter"></i> اعمال فیلتر
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Results Info -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <span class="badge bg-primary fs-6">{{ total_students }}</span>
+        <span class="text-muted ms-2">دانشجو یافت شد</span>
+    </div>
+    <div class="dropdown">
+        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="fas fa-sort"></i> مرتب‌سازی
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="?sort=-studentid{% if search_query %}&search={{ search_query }}{% endif %}">جدیدترین</a></li>
+            <li><a class="dropdown-item" href="?sort=firstname{% if search_query %}&search={{ search_query }}{% endif %}">نام (الفبا)</a></li>
+            <li><a class="dropdown-item" href="?sort=-gpa{% if search_query %}&search={{ search_query }}{% endif %}">بالاترین معدل</a></li>
+            <li><a class="dropdown-item" href="?sort=gpa{% if search_query %}&search={{ search_query }}{% endif %}">پایین‌ترین معدل</a></li>
+        </ul>
+    </div>
+</div>
+
+<!-- Student Cards -->
+<div class="row g-3">
+    {% for student in page_obj %}
+    <div class="col-xl-3 col-lg-4 col-md-6">
+        <div class="card h-100 student-card">
+            <div class="card-body text-center">
+                <!-- Avatar -->
+                <div class="student-avatar mx-auto mb-3 
+                    {% if student.gender == 'زن' %}female{% else %}male{% endif %}">
+                    <i class="fas {% if student.gender == 'زن' %}fa-female{% else %}fa-male{% endif %}"></i>
+                </div>
+                
+                <!-- Name -->
+                <h6 class="fw-bold mb-1">{{ student.get_full_name }}</h6>
+                <small class="text-muted">{{ student.nationalid|default:'کد ملی نامشخص' }}</small>
+                
+                <hr>
+                
+                <!-- Info -->
+                <div class="d-flex justify-content-between mb-2">
+                    <small class="text-muted">رشته:</small>
+                    <small class="fw-bold">{{ student.programid.programname|default:'-'|truncatechars:15 }}</small>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <small class="text-muted">سال ورود:</small>
+                    <small class="fw-bold">{{ student.enrollmentyear|default:'-' }}</small>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <small class="text-muted">معدل:</small>
+                    <small>
+                        {% if student.gpa %}
+                            {% if student.gpa >= 17 %}
+                                <span class="badge bg-success">{{ student.gpa }}</span>
+                            {% elif student.gpa >= 14 %}
+                                <span class="badge bg-warning text-dark">{{ student.gpa }}</span>
+                            {% else %}
+                                <span class="badge bg-danger">{{ student.gpa }}</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </small>
+                </div>
+                
+                <!-- Action Button -->
+                <a href="{% url 'students:detail' student.studentid %}" class="btn btn-outline-primary btn-sm w-100 mt-2">
+                    <i class="fas fa-eye"></i> مشاهده جزئیات
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="empty-state">
+            <i class="fas fa-user-slash"></i>
+            <h5>هیچ دانشجویی یافت نشد</h5>
+            <p class="text-muted">دانشجویی با این مشخصات وجود ندارد</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if program_filter %}&program={{ program_filter }}{% endif %}">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if program_filter %}&program={{ program_filter }}{% endif %}">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+            </li>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+            {% if num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if program_filter %}&program={{ program_filter }}{% endif %}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if program_filter %}&program={{ program_filter }}{% endif %}">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if program_filter %}&program={{ program_filter }}{% endif %}">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .student-card {
+        border-radius: 20px;
+        transition: all 0.3s ease;
+    }
+    .student-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+    }
+    .student-avatar {
+        width: 75px;
+        height: 75px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+    }
+    .student-avatar.male {
+        background: linear-gradient(135deg, #1565c0, #42a5f5);
+    }
+    .student-avatar.female {
+        background: linear-gradient(135deg, #c62828, #ef5350);
+    }
+    .pagination .page-link {
+        border-radius: 12px;
+        margin: 0 3px;
+        border: none;
+        color: #1a237e;
+    }
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, #1a237e, #3949ab);
+        color: white;
+    }
+</style>
+{% endblock %}
