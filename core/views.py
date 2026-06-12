@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Sum
 from students.models import Student
 from professors.models import Professor
@@ -8,6 +9,7 @@ from courses.models import Course
 from tuition.models import Tuition
 
 
+@login_required
 def dashboard(request):
     context = {
         'total_students': Student.objects.count(),

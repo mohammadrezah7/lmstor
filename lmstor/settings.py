@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'tuition',
     'alumni',
     'accommodation',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -60,6 +61,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'accounts.context_processors.user_role_info',
                 'core.context_processors.university_info',
             ],
         },
@@ -122,3 +124,14 @@ MESSAGE_TAGS = {
     messages.WARNING: 'warning',
     messages.ERROR: 'danger',
 }
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/login/'
+
+AUTHENTICATION_BACKENDS = [
+    'accounts.backends.MultiRoleAuthBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+SESSION_COOKIE_AGE = 86400  # 24 hours
+SESSION_SAVE_EVERY_REQUEST = True

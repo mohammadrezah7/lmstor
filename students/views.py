@@ -3,6 +3,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from .models import Student
 from courses.models import Program
+from django.contrib.auth.decorators import login_required
 
 
 def student_list(request):
@@ -87,3 +88,37 @@ def student_create(request):
         pass
     programs = Program.objects.all()
     return render(request, 'students/form.html', {'programs': programs})
+
+@login_required
+def my_dashboard(request):
+    student_id = request.session.get('student_id')
+    student = get_object_or_404(Student, studentid=student_id)
+    context = {
+        'student': student,
+        'enrollments': student.enrollment_set.all(),
+    }
+    return render(request, 'students/my_dashboard.html', context)
+
+
+@login_required
+def my_courses(request):
+    student_id = request.session.get('student_id')
+    student = get_object_or_404(Student, studentid=student_id)
+    enrollments = student.enrollment_set.all()
+    return render(request, 'students/my_courses.html', {'student': student, 'enrollments': enrollments})
+
+
+@login_required
+def my_grades(request):
+    student_id = request.session.get('student_id')
+    student = get_object_or_404(Student, studentid=student_id)
+    enrollments = student.enrollment_set.all()
+    return render(request, 'students/my_grades.html', {'student': student, 'enrollments': enrollments})
+
+
+@login_required
+def my_tuition(request):
+    student_id = request.session.get('student_id')
+    student = get_object_or_404(Student, studentid=student_id)
+    tuitions = student.tuition_set.all().order_by('-year', '-tuitionid')
+    return render(request, 'students/my_tuition.html', {'student': student, 'tuitions': tuitions})
