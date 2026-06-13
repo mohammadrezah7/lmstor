@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}دروس من | پنل دانشجویی{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h3><i class="fas fa-book ms-2"></i>دروس ثبت‌نام شده</h3>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'students:my_dashboard' %}">داشبورد من</a></li>
+            <li class="breadcrumb-item active">دروس من</li>
+        </ol>
+    </nav>
+</div>
+
+{% if enrollments %}
+<div class="row g-3">
+    {% for enr in enrollments %}
+    <div class="col-lg-4 col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h6 class="fw-bold mb-0">{{ enr.sectionid.courseid.coursename }}</h6>
+                    <span class="badge bg-info">{{ enr.sectionid.courseid.credits }} واحد</span>
+                </div>
+                <div class="mb-2">
+                    <small class="text-muted"><i class="fas fa-chalkboard-teacher ms-1"></i> استاد:</small>
+                    <small class="fw-bold">{{ enr.sectionid.professorid.get_full_name|default:'نامشخص' }}</small>
+                </div>
+                <div class="mb-2">
+                    <small class="text-muted"><i class="fas fa-calendar ms-1"></i> ترم:</small>
+                    <small class="fw-bold">{{ enr.sectionid.semester }} {{ enr.sectionid.year }}</small>
+                </div>
+                <div class="mb-2">
+                    <small class="text-muted"><i class="fas fa-door-open ms-1"></i> کلاس:</small>
+                    <small class="fw-bold">{{ enr.sectionid.classroom|default:'نامشخص' }}</small>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">نمره:</small>
+                    {% if enr.grade %}
+                        <span class="badge {% if enr.grade >= 17 %}bg-success{% elif enr.grade >= 10 %}bg-warning text-dark{% else %}bg-danger{% endif %} fs-6">
+                            {{ enr.grade }}
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary">ثبت نشده</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-book-open fa-4x text-muted mb-3 d-block"></i>
+        <h5 class="text-muted">هیچ درسی ثبت‌نام نشده است</h5>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

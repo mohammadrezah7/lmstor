@@ -60,6 +60,7 @@ def user_logout(request):
 def redirect_to_dashboard(request):
     """Redirect user based on their role"""
     role = request.session.get('role', 'admin')
+    
     if role == 'student':
         return redirect('students:my_dashboard')
     elif role == 'professor':

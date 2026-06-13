@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}نمرات من | پنل دانشجویی{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h3><i class="fas fa-chart-bar ms-2"></i>کارنامه تحصیلی</h3>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'students:my_dashboard' %}">داشبورد من</a></li>
+            <li class="breadcrumb-item active">نمرات</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- GPA Card -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body p-4">
+                <small class="text-muted">معدل کل</small>
+                <h2 class="fw-bold mt-2 {% if user_student.gpa >= 17 %}text-success{% elif user_student.gpa >= 14 %}text-warning{% else %}text-danger{% endif %}">
+                    {{ user_student.gpa|default:'-' }}
+                </h2>
+                <small class="text-muted">از ۲۰</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body p-4">
+                <small class="text-muted">کل واحدها</small>
+                <h2 class="fw-bold mt-2 text-primary">
+                    {% with total=0 %}
+                        {% for enr in enrollments %}
+                            {% if enr.sectionid.courseid.credits %}
+                                {% with total=total|add:enr.sectionid.courseid.credits %}{% endwith %}
+                            {% endif %}
+                        {% endfor %}
+                        {{ total }}
+                    {% endwith %}
+                </h2>
+                <small class="text-muted">واحد</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body p-4">
+                <small class="text-muted">دروس گذرانده</small>
+                <h2 class="fw-bold mt-2 text-success">{{ enrollments.count }}</h2>
+                <small class="text-muted">درس</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Grades Table -->
+<div class="card">
+    <div class="card-header"><i class="fas fa-list ms-2"></i>لیست نمرات</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>نام درس</th>
+                        <th>تعداد واحد</th>
+                        <th>استاد</th>
+                        <th>ترم</th>
+                        <th>نمره</th>
+                        <th>وضعیت</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for enr in enrollments %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ enr.sectionid.courseid.coursename }}</td>
+                        <td>{{ enr.sectionid.courseid.credits }}</td>
+                        <td>{{ enr.sectionid.professorid.get_full_name|default:'-' }}</td>
+                        <td>{{ enr.sectionid.semester }} {{ enr.sectionid.year }}</td>
+                        <td>
+                            {% if enr.grade %}
+                                <strong>{{ enr.grade }}</strong>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if enr.grade %}
+                                {% if enr.grade >= 10 %}
+                                    <span class="badge bg-success">قبول</span>
+                                {% else %}
+                                    <span class="badge bg-danger">مردود</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-secondary">در جریان</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center py-4 text-muted">هیچ نمره‌ای ثبت نشده</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} | سامانه مدیریت دانشگاه{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h3>
+        <i class="fas {% if action == 'create' %}fa-user-plus{% else %}fa-user-edit{% endif %} ms-2"></i>
+        {{ title }}
+    </h3>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'students:list' %}">دانشجویان</a></li>
+            <li class="breadcrumb-item active">{{ title }}</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-edit ms-2"></i>{{ title }}
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row g-3">
+                        <!-- Row 1: First Name & Last Name -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">{{ form.firstname.label }} <span class="text-danger">*</span></label>
+                            {{ form.firstname }}
+                            {% if form.firstname.errors %}
+                                <div class="text-danger mt-1 small">{{ form.firstname.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">{{ form.lastname.label }} <span class="text-danger">*</span></label>
+                            {{ form.lastname }}
+                            {% if form.lastname.errors %}
+                                <div class="text-danger mt-1 small">{{ form.lastname.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Row 2: National ID & Email -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">{{ form.nationalid.label }} <span class="text-danger">*</span></label>
+                            {{ form.nationalid }}
+                            {% if form.nationalid.errors %}
+                                <div class="text-danger mt-1 small">{{ form.nationalid.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">{{ form.email.label }} <span class="text-danger">*</span></label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-danger mt-1 small">{{ form.email.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Row 3: Birth Date & Gender -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">{{ form.birthdate.label }}</label>
+                            {{ form.birthdate }}
+                            {% if form.birthdate.errors %}
+                                <div class="text-danger mt-1 small">{{ form.birthdate.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">{{ form.gender.label }}</label>
+                            {{ form.gender }}
+                            {% if form.gender.errors %}
+                                <div class="text-danger mt-1 small">{{ form.gender.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Row 4: Phone & Enrollment Year -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">{{ form.phonenumber.label }}</label>
+                            {{ form.phonenumber }}
+                            {% if form.phonenumber.errors %}
+                                <div class="text-danger mt-1 small">{{ form.phonenumber.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">{{ form.enrollmentyear.label }}</label>
+                            {{ form.enrollmentyear }}
+                            {% if form.enrollmentyear.errors %}
+                                <div class="text-danger mt-1 small">{{ form.enrollmentyear.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Row 5: Program & GPA -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">{{ form.programid.label }} <span class="text-danger">*</span></label>
+                            {{ form.programid }}
+                            {% if form.programid.errors %}
+                                <div class="text-danger mt-1 small">{{ form.programid.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">{{ form.gpa.label }}</label>
+                            {{ form.gpa }}
+                            {% if form.gpa.errors %}
+                                <div class="text-danger mt-1 small">{{ form.gpa.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Row 6: Accommodation -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">{{ form.accommodationid.label }}</label>
+                            {{ form.accommodationid }}
+                            {% if form.accommodationid.errors %}
+                                <div class="text-danger mt-1 small">{{ form.accommodationid.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save ms-1"></i>
+                            {% if action == 'create' %}افزودن دانشجو{% else %}ذخیره تغییرات{% endif %}
+                        </button>
+                        <a href="{% url 'students:list' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-times ms-1"></i> انصراف
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

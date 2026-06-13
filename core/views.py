@@ -1,5 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from accounts.decorators import admin_only
 from django.db.models import Count, Sum
 from students.models import Student
 from professors.models import Professor
@@ -11,6 +12,15 @@ from tuition.models import Tuition
 
 @login_required
 def dashboard(request):
+    # اگه ادمین نیست، بفرست به داشبورد خودش
+    role = request.session.get('role', None)
+    
+    if role == 'student':
+        return redirect('students:my_dashboard')
+    elif role == 'professor':
+        return redirect('professors:my_dashboard')
+    
+    # فقط ادمین ادامه میده
     context = {
         'total_students': Student.objects.count(),
         'total_professors': Professor.objects.count(),

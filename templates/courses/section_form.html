@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}ایجاد گروه درسی جدید{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h3><i class="fas fa-plus-circle ms-2"></i>ایجاد گروه درسی جدید</h3>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'courses:sections' %}">گروه‌های درسی</a></li>
+            <li class="breadcrumb-item active">ایجاد جدید</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">فرم ایجاد گروه درسی</div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">درس</label>
+                            <select name="courseid" class="form-select" required>
+                                <option value="">-- انتخاب درس --</option>
+                                {% for c in courses %}
+                                <option value="{{ c.courseid }}">{{ c.coursename }} ({{ c.credits }} واحد)</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">استاد</label>
+                            <select name="professorid" class="form-select" required>
+                                <option value="">-- انتخاب استاد --</option>
+                                {% for p in professors %}
+                                <option value="{{ p.professorid }}">{{ p.get_full_name }} ({{ p.academicrank }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ترم</label>
+                            <select name="semester" class="form-select" required>
+                                <option value="پاییز">پاییز</option>
+                                <option value="بهار">بهار</option>
+                                <option value="تابستان">تابستان</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">سال</label>
+                            <input type="number" name="year" class="form-control" placeholder="مثلاً 1404" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">کلاس</label>
+                            <input type="text" name="classroom" class="form-control" placeholder="مثلاً ۲۰۱">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ظرفیت</label>
+                            <input type="number" name="capacity" class="form-control" placeholder="تعداد دانشجو">
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save"></i> ایجاد گروه درسی
+                    </button>
+                    <a href="{% url 'courses:sections' %}" class="btn btn-outline-secondary btn-lg">انصراف</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ section.courseid.coursename }} | جزئیات گروه درسی{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h3><i class="fas fa-info-circle ms-2"></i>{{ section.courseid.coursename }}</h3>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'courses:sections' %}">گروه‌های درسی</a></li>
+            <li class="breadcrumb-item active">{{ section.courseid.coursename }}</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="row g-3">
+    <!-- Section Info -->
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">اطلاعات گروه درسی</div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2"><strong>درس:</strong> {{ section.courseid.coursename }} ({{ section.courseid.credits }} واحد)</li>
+                    <li class="mb-2"><strong>استاد:</strong> {{ section.professorid.get_full_name|default:'نامشخص' }}</li>
+                    <li class="mb-2"><strong>ترم:</strong> {{ section.semester }} {{ section.year }}</li>
+                    <li class="mb-2"><strong>کلاس:</strong> {{ section.classroom|default:'نامشخص' }}</li>
+                    <li class="mb-2">
+                        <strong>ظرفیت:</strong> {{ section.capacity|default:'نامحدود' }} نفر
+                        {% if available_seats is not None %}
+                            <span class="badge {% if available_seats > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                {{ available_seats }} جای خالی
+                            </span>
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Enroll Student Form -->
+        {% if user_role == 'admin' or user_role == 'professor' %}
+        <div class="card mt-3">
+            <div class="card-header"><i class="fas fa-user-plus ms-2"></i>ثبت‌نام دانشجو</div>
+            <div class="card-body">
+                <form method="POST" action="{% url 'courses:enroll_student' section.sectionid %}">
+                    {% csrf_token %}
+                    <div class="mb-2">
+                        <select name="student_id" class="form-select" required>
+                            <option value="">-- انتخاب دانشجو --</option>
+                            {% for s in all_students %}
+                            <option value="{{ s.studentid }}">{{ s.get_full_name }} ({{ s.nationalid }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-plus"></i> ثبت‌نام
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Enrolled Students -->
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-users ms-2"></i>دانشجویان ثبت‌نام شده</span>
+                <span class="badge bg-primary">{{ enrollments.count }} نفر</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>نام دانشجو</th>
+                                <th>کد ملی</th>
+                                <th>نمره</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for enr in enrollments %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ enr.studentid.get_full_name }}</td>
+                                <td>{{ enr.studentid.nationalid }}</td>
+                                <td>
+                                    {% if enr.grade %}
+                                        <span class="badge {% if enr.grade >= 10 %}bg-success{% else %}bg-danger{% endif %}">
+                                            {{ enr.grade }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">ثبت نشده</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <!-- Set Grade Modal Trigger -->
+                                        <button class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#gradeModal{{ enr.enrollmentid }}">
+                                            <i class="fas fa-star"></i> نمره
+                                        </button>
+                                        <form method="POST" action="{% url 'courses:remove_enrollment' enr.enrollmentid %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-outline-danger" onclick="return confirm('آیا از حذف این ثبت‌نام اطمینان دارید؟')">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                    
+                                    <!-- Grade Modal -->
+                                    <div class="modal fade" id="gradeModal{{ enr.enrollmentid }}" tabindex="-1">
+                                        <div class="modal-dialog modal-sm">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h6 class="modal-title">ثبت نمره برای {{ enr.studentid.get_full_name }}</h6>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <form method="POST" action="{% url 'courses:set_grade' enr.enrollmentid %}">
+                                                    {% csrf_token %}
+                                                    <div class="modal-body">
+                                                        <input type="number" name="grade" class="form-control" 
+                                                               placeholder="نمره از ۰ تا ۲۰" 
+                                                               min="0" max="20" step="0.01"
+                                                               value="{{ enr.grade|default:'' }}">
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="submit" class="btn btn-primary">ذخیره</button>
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="text-center py-4 text-muted">هیچ دانشجویی ثبت‌نام نشده است</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}امانت‌های من | کتابخانه{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h3><i class="fas fa-book-open ms-2"></i>امانت‌های من</h3>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'students:my_dashboard' %}">داشبورد من</a></li>
+            <li class="breadcrumb-item active">امانت‌ها</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="card">
+    <div class="card-header">لیست کتاب‌های امانت گرفته شده</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>عنوان کتاب</th>
+                        <th>نویسنده</th>
+                        <th>تاریخ امانت</th>
+                        <th>تاریخ برگشت</th>
+                        <th>وضعیت</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in loans %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ loan.bookid.title }}</td>
+                        <td>{{ loan.bookid.author }}</td>
+                        <td>{{ loan.loandate }}</td>
+                        <td>{{ loan.returndate|default:'-' }}</td>
+                        <td>
+                            {% if loan.returndate %}
+                                <span class="badge bg-success">برگشت داده شده</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">در امانت</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center py-4 text-muted">هیچ کتابی امانت نگرفته‌اید</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

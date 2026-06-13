@@ -17,7 +17,15 @@
         </nav>
     </div>
     <div>
-        <a href="#" class="btn btn-warning"><i class="fas fa-edit"></i> ویرایش</a>
+    <a href="{% url 'students:update' student.studentid %}" class="btn btn-warning">
+        <i class="fas fa-edit"></i> ویرایش
+    </a>
+    <a href="{% url 'students:delete' student.studentid %}" class="btn btn-danger">
+        <i class="fas fa-trash"></i> حذف
+    </a>
+    <a href="{% url 'students:list' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-right"></i> بازگشت
+    </a>
         <a href="{% url 'students:list' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-right"></i> بازگشت</a>
     </div>
 </div>

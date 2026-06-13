@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}امانت‌ها | کتابخانه{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h3><i class="fas fa-exchange-alt ms-2"></i>مدیریت امانت‌ها</h3>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'library:list' %}">کتابخانه</a></li>
+            <li class="breadcrumb-item active">امانت‌ها</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- Filter -->
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="btn-group">
+            <a href="{% url 'library:loans' %}" class="btn btn-outline-primary {% if not status_filter %}active{% endif %}">همه</a>
+            <a href="?status=active" class="btn btn-outline-warning {% if status_filter == 'active' %}active{% endif %}">در امانت</a>
+            <a href="?status=returned" class="btn btn-outline-success {% if status_filter == 'returned' %}active{% endif %}">برگشت داده شده</a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>کتاب</th>
+                        <th>نوع</th>
+                        <th>شناسه امانت‌گیرنده</th>
+                        <th>تاریخ امانت</th>
+                        <th>تاریخ برگشت</th>
+                        <th>وضعیت</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in loans %}
+                    <tr>
+                        <td>{{ loan.loanid }}</td>
+                        <td>{{ loan.bookid.title }}</td>
+                        <td>{{ loan.borrowertype }}</td>
+                        <td>{{ loan.borrowerid }}</td>
+                        <td>{{ loan.loandate }}</td>
+                        <td>{{ loan.returndate|default:'-' }}</td>
+                        <td>
+                            {% if loan.returndate %}
+                                <span class="badge bg-success">برگشت داده شده</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">در امانت</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center py-4">هیچ امانتی ثبت نشده</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

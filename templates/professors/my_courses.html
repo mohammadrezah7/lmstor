@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}دروس تدریسی | پنل اساتید{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h3><i class="fas fa-book ms-2"></i>دروس تدریسی</h3>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'professors:my_dashboard' %}">داشبورد من</a></li>
+            <li class="breadcrumb-item active">دروس تدریسی</li>
+        </ol>
+    </nav>
+</div>
+
+{% if sections %}
+<div class="row g-3">
+    {% for sec in sections %}
+    <div class="col-lg-4 col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h6 class="fw-bold mb-0">{{ sec.courseid.coursename }}</h6>
+                    <span class="badge bg-info">{{ sec.courseid.credits }} واحد</span>
+                </div>
+                <div class="mb-2">
+                    <small class="text-muted"><i class="fas fa-calendar ms-1"></i> ترم:</small>
+                    <small class="fw-bold">{{ sec.semester }} {{ sec.year }}</small>
+                </div>
+                <div class="mb-2">
+                    <small class="text-muted"><i class="fas fa-door-open ms-1"></i> کلاس:</small>
+                    <small class="fw-bold">{{ sec.classroom|default:'نامشخص' }}</small>
+                </div>
+                <div class="mb-2">
+                    <small class="text-muted"><i class="fas fa-users ms-1"></i> ظرفیت:</small>
+                    <small class="fw-bold">{{ sec.capacity|default:'نامشخص' }} نفر</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-book-open fa-4x text-muted mb-3 d-block"></i>
+        <h5 class="text-muted">هیچ درسی به شما تخصیص داده نشده است</h5>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

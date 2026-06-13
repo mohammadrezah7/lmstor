@@ -1,15 +1,17 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from django.db.models import Q
-from .models import Student
-from courses.models import Program
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from .models import Student
+from .forms import StudentForm
+from courses.models import Program
+from accounts.decorators import student_only, admin_only, admin_or_professor
 
-
+@admin_or_professor
 def student_list(request):
     students = Student.objects.select_related('programid', 'accommodationid').all()
     
-    # Search
     search_query = request.GET.get('search', '')
     if search_query:
         students = students.filter(
@@ -19,7 +21,6 @@ def student_list(request):
             Q(email__icontains=search_query)
         )
     
-    # Filters
     program_filter = request.GET.get('program', '')
     gender_filter = request.GET.get('gender', '')
     year_filter = request.GET.get('year', '')
@@ -31,7 +32,6 @@ def student_list(request):
     if year_filter:
         students = students.filter(enrollmentyear=year_filter)
     
-    # Sorting
     sort_by = request.GET.get('sort', '-studentid')
     allowed_sorts = ['studentid', '-studentid', 'firstname', '-firstname', 
                      'lastname', '-lastname', 'gpa', '-gpa', 'enrollmentyear', '-enrollmentyear']
@@ -39,15 +39,11 @@ def student_list(request):
         sort_by = '-studentid'
     students = students.order_by(sort_by)
     
-    # Pagination (12 students per page)
     paginator = Paginator(students, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Get all programs for filter dropdown
     programs = Program.objects.all()
-    
-    # Get unique enrollment years for filter
     years = Student.objects.values_list('enrollmentyear', flat=True).distinct().order_by('-enrollmentyear')
     
     context = {
@@ -64,7 +60,7 @@ def student_list(request):
     }
     return render(request, 'students/list.html', context)
 
-
+@admin_or_professor
 def student_detail(request, pk):
     student = get_object_or_404(Student.objects.select_related(
         'programid', 'accommodationid'
@@ -83,13 +79,69 @@ def student_detail(request, pk):
     return render(request, 'students/detail.html', context)
 
 
+@login_required
+@admin_only
 def student_create(request):
     if request.method == 'POST':
-        pass
-    programs = Program.objects.all()
-    return render(request, 'students/form.html', {'programs': programs})
+        form = StudentForm(request.POST)
+        if form.is_valid():
+            student = form.save()
+            messages.success(request, f'✅ دانشجوی "{student.get_full_name()}" با موفقیت افزوده شد.')
+            return redirect('students:detail', pk=student.studentid)
+        else:
+            messages.error(request, '❌ لطفاً خطاهای فرم را اصلاح کنید.')
+    else:
+        form = StudentForm()
+    
+    return render(request, 'students/form.html', {
+        'form': form,
+        'title': 'افزودن دانشجوی جدید',
+        'action': 'create'
+    })
+
 
 @login_required
+@admin_only
+def student_update(request, pk):
+    student = get_object_or_404(Student, pk=pk)
+    
+    if request.method == 'POST':
+        form = StudentForm(request.POST, instance=student)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'✅ اطلاعات "{student.get_full_name()}" با موفقیت بروزرسانی شد.')
+            return redirect('students:detail', pk=student.studentid)
+        else:
+            messages.error(request, '❌ لطفاً خطاهای فرم را اصلاح کنید.')
+    else:
+        form = StudentForm(instance=student)
+    
+    return render(request, 'students/form.html', {
+        'form': form,
+        'title': f'ویرایش اطلاعات: {student.get_full_name()}',
+        'action': 'update',
+        'student': student
+    })
+
+
+@login_required
+@admin_only
+def student_delete(request, pk):
+    student = get_object_or_404(Student, pk=pk)
+    
+    if request.method == 'POST':
+        name = student.get_full_name()
+        student.delete()
+        messages.success(request, f'🗑️ دانشجوی "{name}" با موفقیت حذف شد.')
+        return redirect('students:list')
+    
+    return render(request, 'students/delete.html', {'student': student})
+
+
+# ============ STUDENT PANEL VIEWS ============
+
+@login_required
+@student_only
 def my_dashboard(request):
     student_id = request.session.get('student_id')
     student = get_object_or_404(Student, studentid=student_id)
@@ -101,6 +153,7 @@ def my_dashboard(request):
 
 
 @login_required
+@student_only
 def my_courses(request):
     student_id = request.session.get('student_id')
     student = get_object_or_404(Student, studentid=student_id)
@@ -109,6 +162,7 @@ def my_courses(request):
 
 
 @login_required
+@student_only
 def my_grades(request):
     student_id = request.session.get('student_id')
     student = get_object_or_404(Student, studentid=student_id)
@@ -117,6 +171,7 @@ def my_grades(request):
 
 
 @login_required
+@student_only
 def my_tuition(request):
     student_id = request.session.get('student_id')
     student = get_object_or_404(Student, studentid=student_id)

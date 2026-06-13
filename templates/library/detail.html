@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ book.title }} | کتابخانه{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h3><i class="fas fa-book ms-2"></i>{{ book.title }}</h3>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'library:list' %}">کتابخانه</a></li>
+            <li class="breadcrumb-item active">{{ book.title }}</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="row g-3">
+    <!-- Book Info -->
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-body text-center p-4">
+                <div class="book-detail-icon mx-auto mb-3">
+                    <i class="fas fa-book"></i>
+                </div>
+                <h4 class="fw-bold">{{ book.title }}</h4>
+                <p class="text-muted">{{ book.author }}</p>
+                
+                <hr>
+                
+                <ul class="list-unstyled text-start">
+                    <li class="mb-2"><strong>ناشر:</strong> {{ book.publisher|default:'نامشخص' }}</li>
+                    <li class="mb-2"><strong>سال انتشار:</strong> {{ book.year|default:'نامشخص' }}</li>
+                    <li class="mb-2"><strong>شابک:</strong> {{ book.isbn|default:'نامشخص' }}</li>
+                    <li class="mb-2"><strong>دسته‌بندی:</strong> {{ book.category|default:'نامشخص' }}</li>
+                    <li class="mb-2">
+                        <strong>موجودی:</strong> 
+                        <span class="badge fs-6 {% if book.copiesavailable > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                            {{ book.copiesavailable|default:'0' }} نسخه
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Issue Book Form -->
+        {% if user_role == 'admin' or user_role == 'professor' %}
+        <div class="card mt-3">
+            <div class="card-header"><i class="fas fa-hand-holding ms-2"></i>امانت کتاب</div>
+            <div class="card-body">
+                {% if book.copiesavailable > 0 %}
+                <form method="POST" action="{% url 'library:issue_book' book.bookid %}">
+                    {% csrf_token %}
+                    <div class="mb-2">
+                        <label class="form-label">نوع امانت‌گیرنده</label>
+                        <select name="borrower_type" class="form-select" required>
+                            <option value="Student">دانشجو</option>
+                            <option value="Professor">استاد</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">انتخاب شخص</label>
+                        <select name="borrower_id" class="form-select" required>
+                            <option value="">-- انتخاب کنید --</option>
+                            <optgroup label="دانشجویان">
+                                {% for s in students %}
+                                <option value="{{ s.studentid }}">{{ s.get_full_name }} ({{ s.nationalid }})</option>
+                                {% endfor %}
+                            </optgroup>
+                            <optgroup label="اساتید">
+                                {% for p in professors %}
+                                <option value="{{ p.professorid }}">{{ p.get_full_name }} ({{ p.academicrank }})</option>
+                                {% endfor %}
+                            </optgroup>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-check"></i> ثبت امانت
+                    </button>
+                </form>
+                {% else %}
+                <div class="alert alert-danger mb-0">
+                    <i class="fas fa-times-circle"></i> این کتاب در حال حاضر موجود نیست
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Loan History -->
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header"><i class="fas fa-history ms-2"></i>تاریخچه امانت</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>نوع</th>
+                                <th>شناسه</th>
+                                <th>تاریخ امانت</th>
+                                <th>تاریخ برگشت</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in loans %}
+                            <tr>
+                                <td>{{ loan.loanid }}</td>
+                                <td>{{ loan.borrowertype }}</td>
+                                <td>{{ loan.borrowerid }}</td>
+                                <td>{{ loan.loandate }}</td>
+                                <td>{{ loan.returndate|default:'-' }}</td>
+                                <td>
+                                    {% if not loan.returndate %}
+                                    <a href="{% url 'library:return_book' book.bookid loan.loanid %}" 
+                                       class="btn btn-success btn-sm"
+                                       onclick="return confirm('آیا از برگشت این کتاب اطمینان دارید؟')">
+                                        <i class="fas fa-undo"></i> برگشت
+                                    </a>
+                                    {% else %}
+                                    <span class="badge bg-success">برگشت داده شده</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-center py-4 text-muted">تاریخچه‌ای موجود نیست</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .book-detail-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #1a237e, #3949ab);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+    }
+</style>
+{% endblock %}

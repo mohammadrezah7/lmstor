@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}گروه‌های درسی | سامانه مدیریت دانشگاه{% endblock %}
+
+{% block content %}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h3><i class="fas fa-layer-group ms-2"></i>گروه‌های درسی</h3>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+                <li class="breadcrumb-item active">گروه‌های درسی</li>
+            </ol>
+        </nav>
+    </div>
+    <a href="{% url 'courses:section_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> ایجاد گروه درسی جدید
+    </a>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="GET" class="row g-2">
+            <div class="col-md-3">
+                <select name="semester" class="form-select">
+                    <option value="">همه ترم‌ها</option>
+                    <option value="پاییز" {% if semester_filter == 'پاییز' %}selected{% endif %}>پاییز</option>
+                    <option value="بهار" {% if semester_filter == 'بهار' %}selected{% endif %}>بهار</option>
+                    <option value="تابستان" {% if semester_filter == 'تابستان' %}selected{% endif %}>تابستان</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-filter"></i> فیلتر
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>نام درس</th>
+                        <th>استاد</th>
+                        <th>ترم</th>
+                        <th>سال</th>
+                        <th>کلاس</th>
+                        <th>ظرفیت</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sec in sections %}
+                    <tr>
+                        <td>{{ sec.sectionid }}</td>
+                        <td>{{ sec.courseid.coursename }}</td>
+                        <td>{{ sec.professorid.get_full_name|default:'-' }}</td>
+                        <td><span class="badge bg-info">{{ sec.semester }}</span></td>
+                        <td>{{ sec.year }}</td>
+                        <td>{{ sec.classroom|default:'-' }}</td>
+                        <td>{{ sec.capacity|default:'-' }} نفر</td>
+                        <td>
+                            <a href="{% url 'courses:section_detail' sec.sectionid %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i> جزئیات
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="8" class="text-center py-4 text-muted">هیچ گروه درسی وجود ندارد</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

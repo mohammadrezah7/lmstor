@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}دانشگاه مدیریت{% endblock %}</title>
+    <title>{% block title %}سامانه مدیریت دانشگاه{% endblock %}</title>
     
     <!-- Bootstrap 5.3 RTL -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
@@ -15,7 +15,8 @@
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
     
     <!-- Custom CSS -->
-    <link href="/static/css/style.css" rel="stylesheet">
+    {% load static %}
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
     
     {% block extra_css %}{% endblock %}
     
@@ -61,6 +62,7 @@
             font-weight: 800;
             font-size: 1.3rem;
             letter-spacing: 0.5px;
+            text-decoration: none;
         }
         
         .navbar-brand i {
@@ -119,6 +121,8 @@
             transition: all 0.25s ease;
             position: relative;
             overflow: hidden;
+            text-decoration: none;
+            display: block;
         }
         
         .sidebar .nav-link i {
@@ -243,6 +247,8 @@
         .stat-card.orange { background: linear-gradient(135deg, #e65100, #ff9800); }
         .stat-card.green { background: linear-gradient(135deg, #1b5e20, #43a047); }
         .stat-card.red { background: linear-gradient(135deg, #b71c1c, #e53935); }
+        .stat-card.purple { background: linear-gradient(135deg, #4a148c, #7b1fa2); }
+        .stat-card.teal { background: linear-gradient(135deg, #004d40, #00796b); }
         
         /* ========== TABLE ========== */
         .table {
@@ -354,54 +360,93 @@
             <button class="btn btn-link text-white d-lg-none" id="sidebarToggle">
                 <i class="fas fa-bars fa-lg"></i>
             </button>
-            <a class="navbar-brand" href="{% url 'core:dashboard' %}">
+            
+            {% if user_role == 'admin' %}
+                <a class="navbar-brand" href="{% url 'core:dashboard' %}">
+            {% elif user_role == 'student' %}
+                <a class="navbar-brand" href="{% url 'students:my_dashboard' %}">
+            {% elif user_role == 'professor' %}
+                <a class="navbar-brand" href="{% url 'professors:my_dashboard' %}">
+            {% else %}
+                <a class="navbar-brand" href="{% url 'accounts:login' %}">
+            {% endif %}
                 <i class="fas fa-university"></i>
                 سامانه مدیریت دانشگاه
             </a>
+            
             <div class="d-flex align-items-center gap-2">
-                <a href="#" class="nav-link d-none d-md-block">
-                    <i class="fas fa-bell"></i>
-                </a>
-                <a href="#" class="nav-link d-none d-md-block">
-                    <i class="fas fa-envelope"></i>
-                </a>
-                <div class="dropdown">
-                    <a href="#" class="nav-link dropdown-toggle d-flex align-items-center gap-2" data-bs-toggle="dropdown">
-                        <div class="user-avatar">م</div>
-                        <span class="d-none d-md-inline text-white">مدیر سیستم</span>
+                {% if user.is_authenticated %}
+                    <span class="badge bg-white text-dark d-none d-md-inline">
+                        {% if user_role == 'admin' %}
+                            <i class="fas fa-crown text-warning"></i> مدیر سیستم
+                        {% elif user_role == 'student' %}
+                            <i class="fas fa-user-graduate text-info"></i> دانشجو
+                        {% elif user_role == 'professor' %}
+                            <i class="fas fa-chalkboard-teacher text-success"></i> استاد
+                        {% endif %}
+                    </span>
+                    
+                    <div class="dropdown">
+                        <a href="#" class="nav-link dropdown-toggle d-flex align-items-center gap-2" data-bs-toggle="dropdown">
+                            <div class="user-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <span class="d-none d-md-inline text-white">
+                                {{ user.get_full_name|default:user.username }}
+                            </span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">
+                                <i class="fas fa-sign-out-alt me-2 text-danger"></i>خروج
+                            </a></li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="btn btn-accent btn-sm">
+                        <i class="fas fa-sign-in-alt"></i> ورود
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>پروفایل</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>تنظیمات</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-sign-out-alt me-2"></i>خروج</a></li>
-                    </ul>
-                </div>
+                {% endif %}
             </div>
         </div>
     </nav>
     
     <!-- ========== SIDEBAR ========== -->
+    {% if user.is_authenticated %}
     <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">منوی اصلی</div>
         <nav>
+            <!-- ========== ADMIN MENU ========== -->
+            {% if user_role == 'admin' %}
+            <div class="sidebar-header">منوی مدیریت</div>
+            
             <a href="{% url 'core:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                 <i class="fas fa-th-large"></i> داشبورد
             </a>
-            <a href="{% url 'students:list' %}" class="nav-link {% if 'students' in request.path %}active{% endif %}">
-                <i class="fas fa-user-graduate"></i> دانشجویان
+            <a href="{% url 'students:list' %}" class="nav-link {% if request.resolver_match.url_name == 'list' and 'students' in request.path %}active{% endif %}">
+                <i class="fas fa-user-graduate"></i> مدیریت دانشجویان
             </a>
-            <a href="{% url 'professors:list' %}" class="nav-link {% if 'professors' in request.path %}active{% endif %}">
-                <i class="fas fa-chalkboard-teacher"></i> اساتید
+            <a href="{% url 'professors:list' %}" class="nav-link {% if request.resolver_match.url_name == 'list' and 'professors' in request.path %}active{% endif %}">
+                <i class="fas fa-chalkboard-teacher"></i> مدیریت اساتید
             </a>
-            <a href="{% url 'courses:programs' %}" class="nav-link {% if 'courses' in request.path %}active{% endif %}">
-                <i class="fas fa-book"></i> دروس و کلاس‌ها
+            
+            <div class="sidebar-header mt-3">آموزش</div>
+            <a href="{% url 'courses:programs' %}" class="nav-link {% if 'programs' in request.path %}active{% endif %}">
+                <i class="fas fa-graduation-cap"></i> رشته‌ها
             </a>
+            <a href="{% url 'courses:sections' %}" class="nav-link {% if 'sections' in request.path %}active{% endif %}">
+                <i class="fas fa-layer-group"></i> گروه‌های درسی
+            </a>
+            <a href="{% url 'courses:list' %}" class="nav-link {% if request.resolver_match.url_name == 'list' and 'courses' in request.path %}active{% endif %}">
+                <i class="fas fa-book"></i> دروس
+            </a>
+            
             <div class="sidebar-header mt-3">خدمات</div>
-            <a href="{% url 'library:list' %}" class="nav-link {% if 'library' in request.path %}active{% endif %}">
+            <a href="{% url 'library:list' %}" class="nav-link {% if request.resolver_match.url_name == 'list' and 'library' in request.path %}active{% endif %}">
                 <i class="fas fa-book-open"></i> کتابخانه
             </a>
-            <a href="{% url 'research:list' %}" class="nav-link {% if 'research' in request.path %}active{% endif %}">
+            <a href="{% url 'library:loans' %}" class="nav-link {% if 'loans' in request.path and 'my' not in request.path %}active{% endif %}">
+                <i class="fas fa-exchange-alt"></i> امانت‌ها
+            </a>
+            <a href="{% url 'research:list' %}" class="nav-link {% if request.resolver_match.url_name == 'list' and 'research' in request.path %}active{% endif %}">
                 <i class="fas fa-flask"></i> پژوهش
             </a>
             <a href="{% url 'societies:list' %}" class="nav-link {% if 'societies' in request.path %}active{% endif %}">
@@ -413,15 +458,62 @@
             <a href="{% url 'alumni:list' %}" class="nav-link {% if 'alumni' in request.path %}active{% endif %}">
                 <i class="fas fa-user-tie"></i> فارغ‌التحصیلان
             </a>
+            
+            <!-- ========== STUDENT MENU ========== -->
+            {% elif user_role == 'student' %}
+            <div class="sidebar-header">پنل دانشجویی</div>
+            
+            <a href="{% url 'students:my_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'my_dashboard' %}active{% endif %}">
+                <i class="fas fa-th-large"></i> داشبورد من
+            </a>
+            <a href="{% url 'students:my_courses' %}" class="nav-link {% if request.resolver_match.url_name == 'my_courses' %}active{% endif %}">
+                <i class="fas fa-book"></i> دروس من
+            </a>
+            <a href="{% url 'students:my_grades' %}" class="nav-link {% if request.resolver_match.url_name == 'my_grades' %}active{% endif %}">
+                <i class="fas fa-chart-bar"></i> نمرات من
+            </a>
+            <a href="{% url 'students:my_tuition' %}" class="nav-link {% if request.resolver_match.url_name == 'my_tuition' %}active{% endif %}">
+                <i class="fas fa-credit-card"></i> شهریه من
+            </a>
+            <a href="{% url 'library:my_loans' %}" class="nav-link {% if request.resolver_match.url_name == 'my_loans' %}active{% endif %}">
+                <i class="fas fa-book-open"></i> امانت‌های من
+            </a>
+            
+            <!-- ========== PROFESSOR MENU ========== -->
+            {% elif user_role == 'professor' %}
+            <div class="sidebar-header">پنل اساتید</div>
+            
+            <a href="{% url 'professors:my_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'my_dashboard' %}active{% endif %}">
+                <i class="fas fa-th-large"></i> داشبورد من
+            </a>
+            <a href="{% url 'professors:my_courses' %}" class="nav-link {% if request.resolver_match.url_name == 'my_courses' %}active{% endif %}">
+                <i class="fas fa-book"></i> دروس تدریسی من
+            </a>
+            <a href="{% url 'professors:my_students' %}" class="nav-link {% if request.resolver_match.url_name == 'my_students' %}active{% endif %}">
+                <i class="fas fa-user-graduate"></i> دانشجویان من
+            </a>
+            <a href="{% url 'library:my_loans' %}" class="nav-link {% if request.resolver_match.url_name == 'my_loans' %}active{% endif %}">
+                <i class="fas fa-book-open"></i> امانت‌های من
+            </a>
+            {% endif %}
         </nav>
     </aside>
+    {% endif %}
     
     <!-- ========== MAIN CONTENT ========== -->
     <main class="main-content" id="mainContent">
         {% if messages %}
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    <i class="fas fa-check-circle me-2"></i>
+                    {% if message.tags == 'success' %}
+                        <i class="fas fa-check-circle me-2"></i>
+                    {% elif message.tags == 'error' or message.tags == 'danger' %}
+                        <i class="fas fa-times-circle me-2"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                    {% else %}
+                        <i class="fas fa-info-circle me-2"></i>
+                    {% endif %}
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
@@ -432,21 +524,40 @@
     </main>
     
     <!-- ========== FOOTER ========== -->
+    {% if user.is_authenticated %}
     <footer class="footer">
-        <span>© {% now "Y" %} سامانه مدیریت دانشگاه | تمامی حقوق محفوظ است</span>
+        <span>© {{ current_year }} سامانه مدیریت دانشگاه | تمامی حقوق محفوظ است</span>
     </footer>
+    {% endif %}
     
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Custom JS -->
-    <script src="/static/js/main.js"></script>
     
     <script>
         // Sidebar Toggle
         document.getElementById('sidebarToggle')?.addEventListener('click', function() {
             document.getElementById('sidebar').classList.toggle('show');
         });
+        
+        // Close sidebar on mobile when clicking outside
+        document.addEventListener('click', function(e) {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.getElementById('sidebarToggle');
+            if (sidebar && toggle && window.innerWidth < 992) {
+                if (!sidebar.contains(e.target) && e.target !== toggle) {
+                    sidebar.classList.remove('show');
+                }
+            }
+        });
+        
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            document.querySelectorAll('.alert').forEach(function(alert) {
+                alert.style.transition = 'opacity 0.5s';
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 5000);
     </script>
     
     {% block extra_js %}{% endblock %}

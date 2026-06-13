@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}حذف دانشجو | سامانه مدیریت دانشگاه{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h3><i class="fas fa-trash-alt ms-2 text-danger"></i>حذف دانشجو</h3>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'students:list' %}">دانشجویان</a></li>
+            <li class="breadcrumb-item active">حذف</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <i class="fas fa-exclamation-triangle ms-2"></i>تأیید حذف
+            </div>
+            <div class="card-body text-center p-4">
+                <i class="fas fa-user-times fa-5x text-danger mb-3"></i>
+                <h5 class="mb-3">آیا از حذف این دانشجو اطمینان دارید؟</h5>
+                <p class="text-muted mb-1">
+                    <strong>{{ student.get_full_name }}</strong>
+                </p>
+                <p class="text-muted small">کد ملی: {{ student.nationalid }}</p>
+                
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-circle"></i>
+                    این عملیات قابل بازگشت نیست! تمام اطلاعات مرتبط با این دانشجو (ثبت‌نام‌ها، شهریه، امانت‌ها) نیز حذف خواهند شد.
+                </div>
+                
+                <form method="POST" class="mt-4">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="fas fa-trash-alt ms-1"></i>بله، حذف کن
+                        </button>
+                        <a href="{% url 'students:detail' student.studentid %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-arrow-right ms-1"></i>انصراف
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
